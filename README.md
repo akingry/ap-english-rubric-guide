@@ -53,7 +53,9 @@ Reports are saved to a dated folder on your Desktop (e.g., `report_data_18_Feb_2
 
 ### Web Application
 
-Located in the `web/` folder (`index.html`).
+Located in the `docs/` folder (`index.html`).
+
+**Try it online:** [https://akingry.github.io/ap-english-rubric-guide/](https://akingry.github.io/ap-english-rubric-guide/)
 
 **Usage:**
 1. Open `index.html` in any modern browser
