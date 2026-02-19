@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP English Rubric Guide</title>
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- JSZip for DOCX parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- docx library for creating DOCX -->
+    <script src="https://unpkg.com/docx@8.2.2/build/index.umd.js"></script>
+    
+    <!-- FileSaver.js for saving files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .columns {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .left-column {
+            flex: 1;
+        }
+        
+        .right-column {
+            flex: 1;
+        }
+        
+        .section {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .section h3 {
+            margin: 0 0 10px 0;
+            color: #444;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .file-list {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 120px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #fafafa;
+            margin-bottom: 10px;
+        }
+        
+        .file-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:hover {
+            background: #e8f4fc;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-item .remove {
+            color: #c00;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+        
+        .file-item .remove:hover {
+            background: #fcc;
+            border-radius: 3px;
+        }
+        
+        .empty-message {
+            color: #999;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        
+        button {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .btn-load {
+            background: #4a90d9;
+            color: white;
+        }
+        
+        .btn-load:hover {
+            background: #3a7bc8;
+        }
+        
+        .btn-process {
+            background: #2ecc71;
+            color: white;
+            font-size: 16px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .btn-process:hover {
+            background: #27ae60;
+        }
+        
+        .btn-process:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .status-bar {
+            background: #333;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+        
+        .output-item {
+            background: #d4edda;
+        }
+        
+        .output-item a {
+            color: #155724;
+            text-decoration: none;
+        }
+        
+        .output-item a:hover {
+            text-decoration: underline;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .progress {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #4a90d9;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AP English Rubric Guide</h1>
+        
+        <div class="columns">
+            <!-- Left Column: Source Documents -->
+            <div class="left-column">
+                <!-- PDF Section -->
+                <div class="section">
+                    <h3>PDF Files</h3>
+                    <div class="file-list" id="pdf-list">
+                        <div class="empty-message">No PDF files loaded</div>
+                    </div>
+                    <input type="file" id="pdf-input" accept=".pdf" multiple>
+                    <button class="btn-load" onclick="document.getElementById('pdf-input').click()">Load PDFs</button>
+                </div>
+                
+                <!-- DOCX Section -->
+                <div class="section">
+                    <h3>DOCX Files</h3>
+                    <div class="file-list" id="docx-list">
+                        <div class="empty-message">No DOCX files loaded</div>
+                    </div>
+                    <input type="file" id="docx-input" accept=".docx" multiple>
+                    <button class="btn-load" onclick="document.getElementById('docx-input').click()">Load DOCX</button>
+                </div>
+            </div>
+            
+            <!-- Right Column: Output and Actions -->
+            <div class="right-column">
+                <!-- Output Section -->
+                <div class="section">
+                    <h3>Generated Reports</h3>
+                    <div class="file-list" id="output-list">
+                        <div class="empty-message">No reports generated yet</div>
+                    </div>
+                </div>
+                
+                <!-- Buttons -->
+                <button class="btn-process" id="process-btn" onclick="processAll()">Process All</button>
+                <button class="btn-load" style="margin-top: 10px;" id="download-all-btn" onclick="downloadAll()" disabled>Download All</button>
+                <button class="btn-load" style="margin-top: 5px;" id="download-zip-btn" onclick="downloadAllZip()" disabled>Download as Zip</button>
+                
+                <div class="progress" id="progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar" id="status">Ready</div>
+    </div>
+    
+    <script>
+        // Set PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // Data storage
+        const pdfFiles = new Map();
+        const docxFiles = new Map();
+        const outputFiles = new Map();
+        
+        // File input handlers
+        document.getElementById('pdf-input').addEventListener('change', (e) => {
+            loadFiles(e.target.files, 'pdf');
+            e.target.value = '';
+        });
+        
+        document.getElementById('docx-input').addEventListener('change', (e) => {
+            loadFiles(e.target.files, 'docx');
+            e.target.value = '';
+        });
+        
+        function loadFiles(files, type) {
+            const map = type === 'pdf' ? pdfFiles : docxFiles;
+            const listId = type === 'pdf' ? 'pdf-list' : 'docx-list';
+            
+            for (const file of files) {
+                map.set(file.name, file);
+            }
+            
+            updateFileList(listId, map, type);
+            setStatus(`Loaded ${files.length} ${type.toUpperCase()} file(s)`);
+        }
+        
+        function updateFileList(listId, map, type) {
+            const list = document.getElementById(listId);
+            
+            if (map.size === 0) {
+                list.innerHTML = `<div class="empty-message">No ${type.toUpperCase()} files loaded</div>`;
+                return;
+            }
+            
+            list.innerHTML = '';
+            for (const name of map.keys()) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span>${name}</span>
+                    <span class="remove" onclick="removeFile('${type}', '${name}')">×</span>
+                `;
+                list.appendChild(item);
+            }
+        }
+        
+        function removeFile(type, name) {
+            const map = type === 'pdf' ? pdfFiles : docxFiles;
+            const listId = type === 'pdf' ? 'pdf-list' : 'docx-list';
+            map.delete(name);
+            updateFileList(listId, map, type);
+        }
+        
+        function setStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+        
+        // ============================================
+        // FILENAME PARSING (matches Python exactly)
+        // ============================================
+        function parseFilename(filename) {
+            // Remove extension
+            const base = filename.replace(/\.[^/.]+$/, '');
+            // Split on underscore followed by optional whitespace
+            const parts = base.split(/_\s*/);
+            
+            if (parts.length >= 2) {
+                const studentName = parts[0].trim();
+                // Title is middle parts (exclude last which is usually "review")
+                let titleParts = parts.length > 2 ? parts.slice(1, -1) : [parts[1]];
+                let essayTitle = titleParts.join(' ').trim();
+                // Remove trailing "review" (case insensitive)
+                essayTitle = essayTitle.replace(/\s*review\s*$/i, '');
+                // Title case
+                essayTitle = essayTitle.split(' ').map(w => 
+                    w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                ).join(' ');
+                return { studentName, essayTitle };
+            }
+            
+            return { studentName: base, essayTitle: 'Unknown' };
+        }
+        
+        // ============================================
+        // PDF TEXT EXTRACTION (preserving line breaks)
+        // ============================================
+        async function extractPdfText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const content = await page.getTextContent();
+                const items = content.items;
+                
+                if (items.length === 0) continue;
+                
+                // PDF.js returns items in reading order
+                // Detect line breaks by checking when Y position changes significantly
+                let lastY = null;
+                let lineText = '';
+                const lines = [];
+                
+                for (const item of items) {
+                    if (!item.str) continue;
+                    
+                    const y = item.transform[5];
+                    
+                    if (lastY === null) {
+                        lineText = item.str;
+                        lastY = y;
+                    } else {
+                        // Check if we moved to a different line
+                        // Y decreases as we go down the page in PDF coordinates
+                        const yDiff = Math.abs(y - lastY);
+                        
+                        if (yDiff > 5) {
+                            // New line - save current line and start fresh
+                            if (lineText.trim()) {
+                                lines.push(lineText);
+                            }
+                            lineText = item.str;
+                            lastY = y;
+                        } else {
+                            // Same line - append
+                            lineText += item.str;
+                        }
+                    }
+                }
+                
+                // Don't forget the last line
+                if (lineText.trim()) {
+                    lines.push(lineText);
+                }
+                
+                fullText += lines.join('\n') + '\n';
+            }
+            
+            return fullText;
+        }
+        
+        // ============================================
+        // PDF FEEDBACK PARSING (matches Python exactly)
+        // ============================================
+        // Join lines, removing end-of-line hyphens
+        function joinLines(lines) {
+            if (!lines || lines.length === 0) return '';
+            
+            let result = lines[0];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                // If previous line ends with hyphen and this line starts with lowercase
+                if (result.endsWith('-') && line && /^[a-z]/.test(line)) {
+                    // Remove hyphen and join without space
+                    result = result.slice(0, -1) + line;
+                } else {
+                    // Normal join with space
+                    result = result + ' ' + line;
+                }
+            }
+            return result;
+        }
+        
+        function isQuoteComplete(line) {
+            line = line.trim();
+            if (line.endsWith('"') || line.endsWith('"')) return true;
+            if (line.endsWith('."') || line.endsWith(',"') || line.endsWith('?"')) return true;
+            if (line.endsWith('."') || line.endsWith(',"') || line.endsWith('?"')) return true;
+            return false;
+        }
+        
+        function parsePdfFeedback(text) {
+            // Stop at Document Review section
+            let mainText = text.split(/Document Review|Spelling and Grammar/i)[0];
+            
+            // Split into lines and clean
+            let lines = mainText.split('\n');
+            let cleanedLines = [];
+            
+            for (const line of lines) {
+                let stripped = line.trim();
+                
+                // Skip empty lines
+                if (!stripped) continue;
+                
+                // Skip page headers like "Page 1 of 5" (can appear alone or combined with filename)
+                if (/^Page \d+ of \d+$/i.test(stripped)) continue;
+                
+                // Skip filename repeats (can appear alone or combined)
+                if (/^[A-Za-z]+_\s+.*_review$/i.test(stripped)) continue;
+                
+                // Handle combined filename + page header on same line
+                // e.g., "Taylor_ Light pollution_review Page 2 of 5"
+                if (/^[A-Za-z]+_.*_review\s+Page \d+ of \d+$/i.test(stripped)) continue;
+                
+                // Remove page headers from end of lines
+                stripped = stripped.replace(/\s*Page \d+ of \d+\s*$/i, '').trim();
+                
+                // Remove filename headers from start of lines
+                stripped = stripped.replace(/^[A-Za-z]+_\s+[^_]+_review\s*/i, '').trim();
+                
+                if (stripped) {
+                    cleanedLines.push(stripped);
+                }
+            }
+            
+            lines = cleanedLines;
+            
+            // Section headers we care about (in order they appear in PDF)
+            const sectionNames = ['Evidence and Commentary', 'Sophistication', 'Thesis'];
+            
+            // Normalize whitespace for comparison
+            const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+            
+            const data = {
+                overall_grade: '',
+                overall_overview: '',
+                sections: []
+            };
+            
+            // Find overall grade (comes after "Grading" header)
+            for (let i = 0; i < lines.length; i++) {
+                if (normalize(lines[i]) === 'grading') {
+                    // Next line should be the grade (may have spaces)
+                    if (i + 1 < lines.length && /^\s*\d+\s*\/\s*\d+\s*$/.test(lines[i + 1])) {
+                        data.overall_grade = lines[i + 1].replace(/\s+/g, '');
+                        // Collect overview until we hit a section header
+                        const overviewLines = [];
+                        let j = i + 2;
+                        while (j < lines.length) {
+                            if (sectionNames.some(s => normalize(s) === normalize(lines[j]))) {
+                                break;
+                            }
+                            overviewLines.push(lines[j]);
+                            j++;
+                        }
+                        data.overall_overview = joinLines(overviewLines);
+                    }
+                    break;
+                }
+            }
+            
+            // Find where each section starts
+            const sectionIndices = [];
+            for (let i = 0; i < lines.length; i++) {
+                const normalizedLine = normalize(lines[i]);
+                for (const secName of sectionNames) {
+                    if (normalize(secName) === normalizedLine) {
+                        sectionIndices.push({ index: i, name: secName });
+                        break;
+                    }
+                }
+            }
+            
+            // Parse each section
+            for (let idx = 0; idx < sectionIndices.length; idx++) {
+                const startIdx = sectionIndices[idx].index;
+                const secName = sectionIndices[idx].name;
+                const endIdx = idx + 1 < sectionIndices.length 
+                    ? sectionIndices[idx + 1].index 
+                    : lines.length;
+                
+                const sectionLines = lines.slice(startIdx + 1, endIdx);
+                if (sectionLines.length === 0) continue;
+                
+                let grade = '';
+                const overviewLines = [];
+                const quotes = [];
+                let i = 0;
+                
+                // Get grade (first line should be like "3/4" - may have spaces)
+                if (/^\s*\d+\s*\/\s*\d+\s*$/.test(sectionLines[0])) {
+                    grade = sectionLines[0].replace(/\s+/g, '');
+                    i = 1;
+                }
+                
+                // Collect overview until we hit a quote
+                while (i < sectionLines.length) {
+                    const line = sectionLines[i];
+                    if (line.startsWith('"') || line.startsWith('"')) break;
+                    overviewLines.push(line);
+                    i++;
+                }
+                
+                const overview = joinLines(overviewLines);
+                
+                // Parse quote/feedback pairs
+                let currentQuoteLines = [];
+                let currentFeedbackLines = [];
+                let inQuote = false;
+                let quoteComplete = false;
+                
+                while (i < sectionLines.length) {
+                    const line = sectionLines[i];
+                    const startsWithQuote = line.startsWith('"') || line.startsWith('"');
+                    
+                    if (inQuote && !quoteComplete) {
+                        // Continuation of multi-line quote
+                        currentQuoteLines.push(line);
+                        quoteComplete = isQuoteComplete(line);
+                    } else if (startsWithQuote) {
+                        // New quote starting - save previous if exists
+                        if (currentQuoteLines.length > 0) {
+                            quotes.push({
+                                quote: joinLines(currentQuoteLines),
+                                feedback: joinLines(currentFeedbackLines)
+                            });
+                        }
+                        currentQuoteLines = [line];
+                        currentFeedbackLines = [];
+                        inQuote = true;
+                        quoteComplete = isQuoteComplete(line);
+                    } else if (inQuote && quoteComplete) {
+                        // Quote is done, this is feedback
+                        currentFeedbackLines.push(line);
+                    }
+                    i++;
+                }
+                
+                // Save last quote/feedback
+                if (currentQuoteLines.length > 0) {
+                    quotes.push({
+                        quote: joinLines(currentQuoteLines),
+                        feedback: joinLines(currentFeedbackLines)
+                    });
+                }
+                
+                data.sections.push({ name: secName, grade, overview, quotes });
+            }
+            
+            return data;
+        }
+        
+        // ============================================
+        // DOCX PARSING (matches Python exactly)
+        // ============================================
+        async function parseDocxContent(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            
+            const data = {
+                table_data: [],
+                essay: ''
+            };
+            
+            // Parse document.xml
+            const docXmlFile = zip.file('word/document.xml');
+            if (!docXmlFile) return data;
+            
+            const docXml = await docXmlFile.async('string');
+            
+            // Create a DOM parser
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(docXml, 'text/xml');
+            
+            // Extract table data (skip header row - row index 0)
+            const tables = xmlDoc.getElementsByTagName('w:tbl');
+            if (tables.length > 0) {
+                const table = tables[0];
+                const rows = table.getElementsByTagName('w:tr');
+                
+                for (let i = 1; i < rows.length; i++) { // Skip header row (i=0)
+                    const row = rows[i];
+                    const cells = row.getElementsByTagName('w:tc');
+                    const rowData = [];
+                    
+                    for (let j = 0; j < cells.length; j++) {
+                        // Get all text content from the cell
+                        const textNodes = cells[j].getElementsByTagName('w:t');
+                        let cellText = '';
+                        for (const t of textNodes) {
+                            cellText += t.textContent || '';
+                        }
+                        rowData.push(cellText.trim());
+                    }
+                    
+                    if (rowData.length > 0) {
+                        data.table_data.push(rowData);
+                    }
+                }
+            }
+            
+            // Extract paragraphs for essay content
+            const paragraphs = xmlDoc.getElementsByTagName('w:p');
+            const essayLines = [];
+            let inContentReview = false;
+            const stopMarkers = ['Grammar and Spelling Review', 'Scan Results', 'AI Detection'];
+            
+            for (const para of paragraphs) {
+                // Get all text from this paragraph
+                const textNodes = para.getElementsByTagName('w:t');
+                let paraText = '';
+                for (const t of textNodes) {
+                    paraText += t.textContent || '';
+                }
+                const stripped = paraText.trim();
+                
+                // Check for stop markers
+                if (stopMarkers.some(marker => stripped.toLowerCase().includes(marker.toLowerCase()))) {
+                    break;
+                }
+                
+                // Check for Content Review header
+                if (stripped.toLowerCase().includes('content review')) {
+                    inContentReview = true;
+                    continue;
+                }
+                
+                if (inContentReview && stripped) {
+                    essayLines.push(paraText); // Use original (not stripped) to preserve spacing
+                }
+            }
+            
+            data.essay = essayLines;  // Keep as array of paragraphs
+            
+            return data;
+        }
+        
+        // ============================================
+        // REPORT CREATION (matches Python exactly)
+        // ============================================
+        function formatDate() {
+            const now = new Date();
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        }
+        
+        async function createReport(studentName, essayTitle, pdfData, docxData) {
+            const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, 
+                    WidthType, BorderStyle, AlignmentType, convertInchesToTwip,
+                    TableBorders, TableLayoutType } = docx;
+            
+            const children = [];
+            
+            // Helper to create 12pt Calibri text
+            const text12 = (str, opts = {}) => new TextRun({ 
+                text: str, font: 'Calibri', size: 24, ...opts  // 24 half-points = 12pt
+            });
+            
+            // Helper to create 14pt Calibri bold heading
+            const heading14 = (str) => new TextRun({ 
+                text: str, font: 'Calibri', size: 28, bold: true  // 28 half-points = 14pt
+            });
+            
+            // Name line
+            children.push(new Paragraph({
+                children: [text12(`Name: ${studentName}`)]
+            }));
+            
+            // Essay line
+            children.push(new Paragraph({
+                children: [text12(`Essay: ${essayTitle}`)]
+            }));
+            
+            // Date line
+            children.push(new Paragraph({
+                children: [text12(`Date: ${formatDate()}`)]
+            }));
+            
+            // One blank line
+            children.push(new Paragraph({ children: [] }));
+            
+            // ===== ESSAY SECTION FIRST =====
+            children.push(new Paragraph({
+                children: [heading14('ESSAY')]
+            }));
+            
+            // Essay content (preserved exactly, paragraph by paragraph with soft return after each)
+            if (docxData.essay && docxData.essay.length > 0) {
+                for (const paraText of docxData.essay) {
+                    children.push(new Paragraph({
+                        children: [
+                            text12(paraText),
+                            new TextRun({ break: 1 })  // Soft return after paragraph
+                        ]
+                    }));
+                }
+            }
+            
+            // Two blank lines after essay
+            children.push(new Paragraph({ children: [] }));
+            children.push(new Paragraph({ children: [] }));
+            
+            // ===== AP RUBRIC HEADING =====
+            // Keep with next to ensure it stays with the table
+            children.push(new Paragraph({
+                keepNext: true,
+                keepLines: true,
+                spacing: { after: 0 },
+                children: [heading14('AP RUBRIC')]
+            }));
+            
+            // ===== TABLE SECTION =====
+            if (docxData.table_data && docxData.table_data.length > 0) {
+                // Reorder table rows: Overall, Thesis, Evidence and Commentary, Sophistication
+                const tableOrder = ['overall', 'thesis', 'evidence', 'sophistication'];
+                const originalData = docxData.table_data;
+                const orderedData = [];
+                
+                for (const orderKey of tableOrder) {
+                    for (const row of originalData) {
+                        if (row && row[0] && row[0].toLowerCase().startsWith(orderKey)) {
+                            orderedData.push(row);
+                            break;
+                        }
+                    }
+                }
+                // Add any rows that didn't match (fallback)
+                for (const row of originalData) {
+                    if (!orderedData.includes(row)) {
+                        orderedData.push(row);
+                    }
+                }
+                
+                const numRows = orderedData.length;
+                const tableRows = orderedData.map((rowData, rowIndex) => {
+                    const cells = [];
+                    for (let j = 0; j < 3; j++) {
+                        const cellText = rowData[j] || '';
+                        // First two columns: 1.2 inches, third: 4.1 inches
+                        const widthInches = j < 2 ? 1.2 : 4.1;
+                        cells.push(new TableCell({
+                            width: { size: convertInchesToTwip(widthInches), type: WidthType.DXA },
+                            children: [new Paragraph({
+                                keepLines: true,
+                                keepNext: rowIndex < numRows - 1,  // Keep with next except for last row
+                                children: [new TextRun({ 
+                                    text: cellText, 
+                                    font: 'Calibri', 
+                                    size: 20  // 10pt
+                                })]
+                            })]
+                        }));
+                    }
+                    return new TableRow({ 
+                        cantSplit: true,  // Prevent row from splitting across pages
+                        children: cells 
+                    });
+                });
+                
+                children.push(new Table({
+                    rows: tableRows,
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    layout: TableLayoutType.FIXED
+                }));
+            }
+            
+            // Two blank lines after table
+            children.push(new Paragraph({ children: [] }));
+            children.push(new Paragraph({ children: [] }));
+            
+            // ===== QUOTES AND FEEDBACK SECTION =====
+            // Order: Overall, Thesis, Evidence and Commentary, Sophistication
+            const sectionOrder = ['Thesis', 'Evidence and Commentary', 'Sophistication'];
+            const sectionsByName = {};
+            for (const sec of pdfData.sections || []) {
+                sectionsByName[sec.name] = sec;
+            }
+            
+            // OVERALL section (heading only - overview is in table)
+            if (pdfData.overall_grade) {
+                children.push(new Paragraph({ 
+                    children: [heading14(`OVERALL: ${pdfData.overall_grade}`)]
+                }));
+                children.push(new Paragraph({ children: [] })); // Blank after
+            }
+            
+            // Remaining sections: Thesis, Evidence and Commentary, Sophistication
+            for (const secName of sectionOrder) {
+                const section = sectionsByName[secName];
+                if (!section) continue;
+                
+                // Section heading with grade (14pt bold)
+                children.push(new Paragraph({
+                    spacing: { before: 240, after: 0 },  // 12pt before
+                    children: [heading14(`${section.name}: ${section.grade}`)]
+                }));
+                
+                // Skip overview (redundant with table) - go straight to quotes and feedback
+                let firstQuote = true;
+                for (const item of section.quotes || []) {
+                    // Quote paragraph (italics)
+                    if (item.quote) {
+                        children.push(new Paragraph({
+                            spacing: { before: firstQuote ? 120 : 240, after: 0 },
+                            children: [text12(item.quote, { italics: true })]
+                        }));
+                        firstQuote = false;
+                    }
+                    
+                    // Feedback (indented 0.5 inch)
+                    if (item.feedback) {
+                        children.push(new Paragraph({
+                            spacing: { before: 40, after: 0 },  // 2pt before
+                            indent: { left: convertInchesToTwip(0.5) },
+                            children: [text12(item.feedback)]
+                        }));
+                    }
+                }
+                
+                // Blank paragraph after section
+                children.push(new Paragraph({ children: [] }));
+            }
+            
+            const doc = new Document({
+                sections: [{
+                    properties: {},
+                    children
+                }]
+            });
+            
+            return await Packer.toBlob(doc);
+        }
+        
+        // ============================================
+        // DOWNLOAD ALL (individual files)
+        // ============================================
+        async function downloadAll() {
+            if (outputFiles.size === 0) {
+                alert('No reports to download. Process files first.');
+                return;
+            }
+            
+            setStatus('Downloading files...');
+            
+            let count = 0;
+            for (const [name, blob] of outputFiles) {
+                // Small delay between downloads to avoid browser blocking
+                await new Promise(resolve => setTimeout(resolve, 300));
+                saveAs(blob, name);
+                count++;
+                setStatus(`Downloading ${count}/${outputFiles.size}...`);
+            }
+            
+            setStatus(`Downloaded ${outputFiles.size} report(s)`);
+        }
+        
+        // ============================================
+        // DOWNLOAD ALL AS ZIP
+        // ============================================
+        async function downloadAllZip() {
+            if (outputFiles.size === 0) {
+                alert('No reports to download. Process files first.');
+                return;
+            }
+            
+            setStatus('Creating zip file...');
+            
+            // Create a zip file with all reports
+            const zip = new JSZip();
+            const dateStr = new Date().toLocaleDateString('en-GB', { 
+                day: '2-digit', month: 'short', year: 'numeric' 
+            }).replace(/ /g, '_');
+            const folderName = `report_data_${dateStr}`;
+            const folder = zip.folder(folderName);
+            
+            for (const [name, blob] of outputFiles) {
+                const arrayBuffer = await blob.arrayBuffer();
+                folder.file(name, arrayBuffer);
+            }
+            
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            saveAs(zipBlob, `${folderName}.zip`);
+            
+            setStatus(`Downloaded ${outputFiles.size} report(s) as zip`);
+        }
+        
+        // ============================================
+        // PROCESS ALL
+        // ============================================
+        async function processAll() {
+            if (pdfFiles.size === 0) {
+                alert('Please load PDF files first.');
+                return;
+            }
+            
+            const btn = document.getElementById('process-btn');
+            btn.disabled = true;
+            
+            const progress = document.getElementById('progress');
+            const progressFill = document.getElementById('progress-fill');
+            progress.style.display = 'block';
+            
+            outputFiles.clear();
+            const outputList = document.getElementById('output-list');
+            outputList.innerHTML = '';
+            
+            let processed = 0;
+            const total = pdfFiles.size;
+            const errors = [];
+            
+            for (const [pdfName, pdfFile] of pdfFiles) {
+                try {
+                    setStatus(`Processing ${pdfName}...`);
+                    
+                    const { studentName, essayTitle } = parseFilename(pdfName);
+                    
+                    // Find matching DOCX by student name
+                    let docxFile = null;
+                    for (const [docxName, file] of docxFiles) {
+                        const docxStudent = parseFilename(docxName).studentName;
+                        if (docxStudent.toLowerCase() === studentName.toLowerCase()) {
+                            docxFile = file;
+                            break;
+                        }
+                    }
+                    
+                    // Extract PDF data
+                    const pdfText = await extractPdfText(pdfFile);
+                    const pdfData = parsePdfFeedback(pdfText);
+                    
+                    // Extract DOCX data
+                    let docxData = { table_data: [], essay: '' };
+                    if (docxFile) {
+                        docxData = await parseDocxContent(docxFile);
+                    } else {
+                        errors.push(`No matching DOCX for ${studentName}`);
+                    }
+                    
+                    // Create report
+                    const reportBlob = await createReport(studentName, essayTitle, pdfData, docxData);
+                    const outputName = `${studentName}_report.docx`;
+                    
+                    outputFiles.set(outputName, reportBlob);
+                    
+                    // Add to output list with download link
+                    const item = document.createElement('div');
+                    item.className = 'file-item output-item';
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(reportBlob);
+                    link.download = outputName;
+                    link.textContent = outputName;
+                    item.appendChild(link);
+                    outputList.appendChild(item);
+                    
+                    processed++;
+                    progressFill.style.width = `${(processed / total) * 100}%`;
+                    
+                } catch (e) {
+                    errors.push(`${pdfName}: ${e.message}`);
+                    console.error(e);
+                }
+            }
+            
+            progress.style.display = 'none';
+            btn.disabled = false;
+            
+            // Enable download buttons if we have reports
+            const hasReports = outputFiles.size > 0;
+            document.getElementById('download-all-btn').disabled = !hasReports;
+            document.getElementById('download-zip-btn').disabled = !hasReports;
+            
+            let status = `Processed ${processed} file(s).`;
+            if (errors.length > 0) {
+                status += ` Warnings: ${errors.length}`;
+                console.warn('Processing warnings:', errors);
+            }
+            setStatus(status);
+            
+            if (processed > 0) {
+                alert(`Generated ${processed} report(s).\n\nClick on each report name to download.`);
+            }
+        }
+    </script>
+</body>
+</html>
