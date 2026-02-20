@@ -663,8 +663,9 @@
                     break;
                 }
                 
-                // Check for Content Review header
-                if (stripped.toLowerCase().includes('content review')) {
+                // Check for Content Review or Essay header
+                if (stripped.toLowerCase().includes('content review') || 
+                    stripped.toLowerCase() === 'essay') {
                     inContentReview = true;
                     continue;
                 }
