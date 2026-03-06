@@ -15,21 +15,21 @@ This tool processes graded essays and generates consolidated reports containing:
 
 ### Report Structure
 
-1. **Header** — Student name, essay title, and date
-2. **Essay** — Original student essay with paragraphs preserved
-3. **AP Rubric** — Grading table (Overall, Thesis, Evidence and Commentary, Sophistication)
-4. **Feedback Sections** — Each category shows quotes from the essay with specific feedback
+1. **Header** - Student name, essay title, and date
+2. **Essay** - Original student essay with paragraphs preserved
+3. **AP Rubric** - Grading table (Overall, Thesis, Evidence and Commentary, Sophistication)
+4. **Feedback Sections** - Each category shows quotes from the essay with specific feedback
 
 ---
 
 ## Features
 
-- **Batch Processing** — Load multiple PDF and DOCX files at once
-- **Automatic Matching** — Files are matched by student name
-- **De-hyphenation** — Line-break hyphens are automatically removed
-- **Preserved Formatting** — Essay paragraphs maintain original structure
-- **Table Integrity** — AP Rubric table and header stay together on one page
-- **Two Download Options** (Web version) — Individual files or single ZIP archive
+- **Batch Processing** - Load multiple PDF and DOCX files at once
+- **Automatic Matching** - Files are matched by student name
+- **De-hyphenation** - Line-break hyphens are automatically removed
+- **Preserved Formatting** - Essay paragraphs maintain original structure
+- **Table Integrity** - AP Rubric table and header stay together on one page
+- **Two Download Options** (Web version) - Individual files or single ZIP archive
 
 ---
 
@@ -64,7 +64,7 @@ Located in the `docs/` folder (`index.html`).
 4. Click "Process All" (right panel)
 5. Download individual reports or use "Download as Zip"
 
-No installation required — runs entirely in the browser using:
+No installation required - runs entirely in the browser using:
 - PDF.js for PDF parsing
 - JSZip for DOCX parsing and ZIP creation
 - docx library for report generation
@@ -75,15 +75,15 @@ No installation required — runs entirely in the browser using:
 
 ### PDF File (Feedback)
 Contains graded feedback with sections:
-- **Grading** — Overall grade and comments
-- **Evidence and Commentary** — Grade, overview, quotes with feedback
-- **Sophistication** — Grade, overview, quotes with feedback
-- **Thesis** — Grade, overview, quotes with feedback
+- **Grading** - Overall grade and comments
+- **Evidence and Commentary** - Grade, overview, quotes with feedback
+- **Sophistication** - Grade, overview, quotes with feedback
+- **Thesis** - Grade, overview, quotes with feedback
 
 ### DOCX File (Essay + Rubric)
 Contains:
-- **Grading Table** — 4 rows × 3 columns (header row + 4 categories)
-- **Content Review** — The original student essay
+- **Grading Table** - 4 rows x 3 columns (header row + 4 categories)
+- **Content Review** - The original student essay
 
 ### File Naming Convention
 
@@ -141,4 +141,4 @@ Both the table and feedback sections follow this order:
 
 ## License
 
-MIT License
+Copyright (c) 2026 Adam Kingry. Licensed under the [MIT License](LICENSE).
